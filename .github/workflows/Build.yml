@@ -1,4 +1,4 @@
-name: Build MPP Package
+name: Build DEB
 
 on:
   push:
@@ -8,30 +8,39 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
-    container:
-      image: my-mpp-image
 
     steps:
-      - name: Checkout repository
+      - name: Set up Git repository
         uses: actions/checkout@v2
-      
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      
-      - name: Build package
+      - name: Install build dependencies
         run: |
-          apt update
-          apt install -y build-essential cmake
-          mkdir build && cd build
-          cmake ..
-          make package
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake
 
-      - name: Upload package
+      - name: Build project
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+          make
+
+      - name: Package as DEB
+        run: |
+          # Assuming the project generates the necessary files for packaging
+          # Modify the commands based on your project structure
+          mkdir -p deb-package/DEBIAN
+          echo "Package: your-package-name" > deb-package/DEBIAN/control
+          echo "Version: 1.0" >> deb-package/DEBIAN/control
+          # Add other necessary control file fields
+          # Copy built files to the appropriate directory in the package
+          cp -R build/bin deb-package/usr/local/bin
+
+      - name: Create DEB package
+        run: dpkg-deb --build deb-package
+
+      - name: Upload DEB artifact
         uses: actions/upload-artifact@v2
         with:
-          name: mpp-package
-          path: build/*.deb
+          name: mpp
+          path: deb-package.deb

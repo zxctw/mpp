@@ -3,7 +3,7 @@ name: Build MPP Package
 on:
   push:
     branches:
-      - main
+      - develop
 
 jobs:
   build:
